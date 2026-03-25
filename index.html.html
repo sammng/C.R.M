@@ -1,0 +1,382 @@
+
+<style>
+* { box-sizing: border-box; }
+.wrap { padding: 1rem 0; }
+.nav { display: flex; gap: 6px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.nav-btn { padding: 6px 14px; border-radius: var(--border-radius-md); font-size: 12px; font-weight: 500; cursor: pointer; border: 0.5px solid var(--color-border-secondary); color: var(--color-text-secondary); background: transparent; transition: all 0.15s; }
+.nav-btn.active { background: var(--color-background-info); color: var(--color-text-info); border-color: var(--color-border-info); }
+.page { display: none; }
+.page.active { display: block; }
+
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+.sec { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.07em; margin: 0 0 10px; }
+
+.kpi-row { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin-bottom: 1rem; }
+.kpi { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px; }
+.kpi-l { font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 2px; }
+.kpi-v { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
+
+.pipeline { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 6px; margin-bottom: 1rem; }
+.stage { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 10px 8px; cursor: pointer; transition: border-color 0.15s; }
+.stage:hover { border-color: var(--color-border-secondary); }
+.stage-dot { width: 8px; height: 8px; border-radius: 50%; margin-bottom: 6px; }
+.stage-name { font-size: 11px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 2px; }
+.stage-n { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
+.stage-sub { font-size: 10px; color: var(--color-text-tertiary); margin-top: 1px; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
+
+.funnel-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+.funnel-label { font-size: 11px; color: var(--color-text-secondary); width: 90px; min-width: 90px; text-align: right; }
+.funnel-bg { flex: 1; background: var(--color-background-secondary); border-radius: 3px; height: 16px; overflow: hidden; }
+.funnel-bar { height: 100%; border-radius: 3px; }
+.funnel-num { font-size: 11px; font-weight: 500; color: var(--color-text-primary); width: 24px; text-align: right; }
+
+.check-item { display: flex; gap: 8px; align-items: flex-start; padding: 7px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.check-item:last-child { border-bottom: none; }
+.circle { width: 16px; height: 16px; min-width: 16px; border-radius: 50%; border: 1.5px solid var(--color-border-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+.circle.done { background: var(--color-background-success); border-color: var(--color-border-success); }
+.circle.done::after { content:''; width:4px; height:7px; border:1.5px solid var(--color-text-success); border-left:none; border-top:none; transform:rotate(45deg) translateY(-1px); display:block; }
+.check-text { font-size: 12px; color: var(--color-text-primary); line-height: 1.5; }
+
+.badge { display: inline-block; font-size: 10px; font-weight: 500; padding: 1px 6px; border-radius: 8px; margin-left: 5px; vertical-align: middle; }
+.b-info { background: var(--color-background-info); color: var(--color-text-info); }
+.b-warn { background: var(--color-background-warning); color: var(--color-text-warning); }
+.b-succ { background: var(--color-background-success); color: var(--color-text-success); }
+.b-dang { background: var(--color-background-danger); color: var(--color-text-danger); }
+
+.trame-step { display: flex; gap: 12px; padding: 12px 0; border-bottom: 0.5px solid var(--color-border-tertiary); align-items: flex-start; }
+.trame-step:last-child { border-bottom: none; padding-bottom: 0; }
+.t-num { width: 24px; height: 24px; min-width: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; margin-top: 1px; }
+.t-body { flex: 1; }
+.t-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 3px; }
+.t-desc { font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; margin-bottom: 6px; }
+.msg-box { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 12px; font-size: 12px; color: var(--color-text-primary); line-height: 1.6; font-style: italic; white-space: pre-line; }
+.t-delay { font-size: 10px; color: var(--color-text-tertiary); margin-top: 4px; }
+
+.obj-row { padding: 9px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.obj-row:last-child { border-bottom: none; }
+.obj-q { font-size: 12px; font-weight: 500; color: var(--color-text-danger); margin-bottom: 4px; }
+.obj-a { font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; font-style: italic; }
+
+.crit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.crit-c { border-radius: var(--border-radius-md); padding: 10px 12px; }
+.crit-yes { background: var(--color-background-success); }
+.crit-no { background: var(--color-background-danger); }
+.crit-l { font-size: 11px; font-weight: 500; margin-bottom: 5px; }
+.crit-l-yes { color: var(--color-text-success); }
+.crit-l-no { color: var(--color-text-danger); }
+.crit-item { font-size: 11px; color: var(--color-text-primary); padding: 2px 0; }
+
+.btn-ask { background: transparent; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 6px 12px; font-size: 12px; color: var(--color-text-secondary); cursor: pointer; width: 100%; margin-top: 8px; }
+.btn-ask:hover { background: var(--color-background-secondary); }
+
+.diff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
+.diff-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem; }
+.diff-head { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 8px; padding-bottom: 8px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+</style>
+
+<div class="wrap">
+
+<div class="nav">
+  <button class="nav-btn active" onclick="showPage('dashboard', this)">Dashboard</button>
+  <button class="nav-btn" onclick="showPage('trame-of', this)">Trame — petit compte OF</button>
+  <button class="nav-btn" onclick="showPage('trame-noof', this)">Trame — pas d'OF</button>
+  <button class="nav-btn" onclick="showPage('objections', this)">Objections</button>
+  <button class="nav-btn" onclick="showPage('ciblage', this)">Ciblage</button>
+</div>
+
+<div id="dashboard" class="page active">
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-l">Profils/jour</div><div class="kpi-v">5–8</div></div>
+    <div class="kpi"><div class="kpi-l">DM/jour</div><div class="kpi-v">5–10</div></div>
+    <div class="kpi"><div class="kpi-l">Objectif mois 1</div><div class="kpi-v">1 signé</div></div>
+    <div class="kpi"><div class="kpi-l">% départ</div><div class="kpi-v">30%</div></div>
+  </div>
+
+  <div class="pipeline">
+    <div class="stage"><div class="stage-dot" style="background:#7F77DD"></div><div class="stage-name">Ciblage</div><div class="stage-n">—</div><div class="stage-sub">profils repérés</div></div>
+    <div class="stage"><div class="stage-dot" style="background:#1D9E75"></div><div class="stage-name">Chauffe</div><div class="stage-n">—</div><div class="stage-sub">likes / comms</div></div>
+    <div class="stage"><div class="stage-dot" style="background:#EF9F27"></div><div class="stage-name">Premier DM</div><div class="stage-n">—</div><div class="stage-sub">envoyés</div></div>
+    <div class="stage"><div class="stage-dot" style="background:#D85A30"></div><div class="stage-name">Conversation</div><div class="stage-n">—</div><div class="stage-sub">en cours</div></div>
+    <div class="stage"><div class="stage-dot" style="background:#639922"></div><div class="stage-name">Signé</div><div class="stage-n">—</div><div class="stage-sub">contrats actifs</div></div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="sec">Entonnoir</div>
+      <div class="funnel-row"><div class="funnel-label">Ciblés</div><div class="funnel-bg"><div class="funnel-bar" style="width:100%;background:#7F77DD"></div></div><div class="funnel-num">100%</div></div>
+      <div class="funnel-row"><div class="funnel-label">Engagés</div><div class="funnel-bg"><div class="funnel-bar" style="width:50%;background:#1D9E75"></div></div><div class="funnel-num">50%</div></div>
+      <div class="funnel-row"><div class="funnel-label">Réponses</div><div class="funnel-bg"><div class="funnel-bar" style="width:30%;background:#EF9F27"></div></div><div class="funnel-num">30%</div></div>
+      <div class="funnel-row"><div class="funnel-label">Conversations</div><div class="funnel-bg"><div class="funnel-bar" style="width:15%;background:#D85A30"></div></div><div class="funnel-num">15%</div></div>
+      <div class="funnel-row"><div class="funnel-label">Signés</div><div class="funnel-bg"><div class="funnel-bar" style="width:5%;background:#639922"></div></div><div class="funnel-num">5%</div></div>
+    </div>
+    <div class="card">
+      <div class="sec">Checklist quotidienne</div>
+      <div class="check-item"><div class="circle" onclick="tog(this)"></div><div class="check-text">Identifier 5 profils <span class="badge b-info">Ciblage</span></div></div>
+      <div class="check-item"><div class="circle" onclick="tog(this)"></div><div class="check-text">Liker 3–5 posts sur chaque profil <span class="badge b-info">Chauffe</span></div></div>
+      <div class="check-item"><div class="circle" onclick="tog(this)"></div><div class="check-text">Envoyer 5–10 DM personnalisés <span class="badge b-warn">DM</span></div></div>
+      <div class="check-item"><div class="circle" onclick="tog(this)"></div><div class="check-text">Relancer les sans-réponse +48h <span class="badge b-warn">Suivi</span></div></div>
+      <div class="check-item"><div class="circle" onclick="tog(this)"></div><div class="check-text">Proposer un call aux chaudes <span class="badge b-dang">Closing</span></div></div>
+      <div class="check-item"><div class="circle" onclick="tog(this)"></div><div class="check-text">Mettre à jour le pipeline <span class="badge b-succ">Admin</span></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec">Règles d'or</div>
+    <div class="check-item"><div class="circle done"></div><div class="check-text">Jamais de pitch dans le 1er message — l'objectif c'est une réponse, rien d'autre</div></div>
+    <div class="check-item"><div class="circle done"></div><div class="check-text">1 seule question par message, toujours ouverte</div></div>
+    <div class="check-item"><div class="circle done"></div><div class="check-text">Max 2 relances — si pas de réponse après ça, on passe</div></div>
+    <div class="check-item"><div class="circle done"></div><div class="check-text">Proposer 30% le 1er mois — c'est ta réponse à l'absence de références</div></div>
+    <div class="check-item"><div class="circle done"></div><div class="check-text">Aller chercher le call rapidement — la vente se fait à l'oral, pas en DM</div></div>
+    <div class="check-item"><div class="circle done"></div><div class="check-text">Spécificité > générosité — montrer que t'as regardé son compte bat tous les compliments</div></div>
+  </div>
+</div>
+
+<div id="trame-of" class="page">
+  <div class="card" style="margin-bottom:10px">
+    <div class="sec">Profil cible — petit compte OF (500–15k, déjà monétisée)</div>
+    <div style="font-size:12px;color:var(--color-text-secondary);line-height:1.6">Elle est déjà dans le game, elle sait ce qu'est un manager. Elle est méfiante car elle en a déjà vu beaucoup. L'angle : simplifier sa vie et booster ses revenus sans lui faire peur. Tu parles de temps avant de parler d'argent.</div>
+  </div>
+
+  <div class="card">
+    <div class="sec">Trame complète</div>
+
+    <div class="trame-step">
+      <div class="t-num" style="background:var(--color-background-info);color:var(--color-text-info)">1</div>
+      <div class="t-body">
+        <div class="t-title">Identifier & qualifier</div>
+        <div class="t-desc">Lien OF visible en bio, posts récents (&lt;5j), contenu régulier, entre 500 et 15k abonnés, pas de mention d'agence ou manager en bio.</div>
+      </div>
+    </div>
+
+    <div class="trame-step">
+      <div class="t-num" style="background:var(--color-background-info);color:var(--color-text-info)">2</div>
+      <div class="t-body">
+        <div class="t-title">Chauffe — 2 à 3 jours</div>
+        <div class="t-desc">Liker 3 à 5 posts espacés. Un commentaire sincère et spécifique sur un seul post. Pas de "check your DM", jamais.</div>
+      </div>
+    </div>
+
+    <div class="trame-step">
+      <div class="t-num" style="background:var(--color-background-warning);color:var(--color-text-warning)">3</div>
+      <div class="t-body">
+        <div class="t-title">Premier DM — curiosité pure</div>
+        <div class="t-desc">Court, humain, zéro pitch. Joue sur la curiosité sans révéler l'intention.</div>
+        <div class="msg-box">"J'ai une idée pour ton compte — je t'explique que si t'es ouverte à en parler"</div>
+        <div class="msg-box" style="margin-top:6px">"Je te contacte pas par hasard, mais j'explique seulement si t'es intéressée"</div>
+      </div>
+    </div>
+
+    <div class="trame-step">
+      <div class="t-num" style="background:var(--color-background-warning);color:var(--color-text-warning)">4</div>
+      <div class="t-body">
+        <div class="t-title">Elle répond → aller chercher sa douleur</div>
+        <div class="t-desc">Pas de pitch encore. Une question sur son quotidien.</div>
+        <div class="msg-box">"Honnêtement c'est quoi le truc le plus chiant à gérer sur ton OF en ce moment ?"</div>
+        <div class="t-delay">Objectif : qu'elle parle. Écouter avant de proposer.</div>
+      </div>
+    </div>
+
+    <div class="trame-step">
+      <div class="t-num" style="background:var(--color-background-warning);color:var(--color-text-warning)">5</div>
+      <div class="t-body">
+        <div class="t-title">Introduire la proposition — naturellement</div>
+        <div class="t-desc">Une fois qu'elle a exprimé un pain point, tu rebondis dessus.</div>
+        <div class="msg-box">"C'est exactement ce que je gère pour les créatrices avec qui je travaille — le chatting, le contenu, la strat. Toi tu crées, moi je gère le reste"</div>
+      </div>
+    </div>
+
+    <div class="trame-step">
+      <div class="t-num" style="background:var(--color-background-danger);color:var(--color-text-danger)">6</div>
+      <div class="t-body">
+        <div class="t-title">Aller chercher le call</div>
+        <div class="t-desc">Dès qu'elle est réceptive, proposer un call court. Ne pas closer en DM.</div>
+        <div class="msg-box">"On s'appelle 15 min ? Je te montre concrètement ce que j'aurais fait sur ton compte ce mois-ci"</div>
+      </div>
+    </div>
+
+    <div class="trame-step">
+      <div class="t-num" style="background:var(--color-background-success);color:var(--color-text-success)">7</div>
+      <div class="t-body">
+        <div class="t-title">Relance J+2 si silence</div>
+        <div class="t-desc">Un seul message de relance, angle différent, jamais le même.</div>
+        <div class="msg-box">"Je voulais pas insister mais j'ai regardé ton compte plus en détail — il y a vraiment quelque chose à faire. Dis-moi si c'est le bon moment"</div>
+      </div>
+    </div>
+
+  </div>
+  <button class="btn-ask" onclick="sendPrompt('Génère-moi des variations du message étape 3 pour un petit compte OF fitness')">Générer des variations étape 3 ↗</button>
+</div>
+
+<div id="trame-noof" class="page">
+  <div class="card" style="margin-bottom:10px">
+    <div class="sec">Profil cible — pas d'OF (lifestyle, fitness, suggestif)</div>
+    <div style="font-size:12px;color:var(--color-text-secondary);line-height:1.6">Elle ne sait pas forcément ce qu'est le management OF. Elle n'est pas dans le mindset business. L'approche doit être encore plus douce — tu l'amènes à l'idée de monétiser avant même de parler de toi. Ne jamais mentionner OF trop tôt.</div>
+  </div>
+
+  <div class="card">
+    <div class="sec">Trame complète</div>
+
+    <div class="trame-step">
+      <div class="t-num" style="background:var(--color-background-info);color:var(--color-text-info)">1</div>
+      <div class="t-body">
+        <div class="t-title">Identifier & qualifier</div>
+        <div class="t-desc">Contenu suggestif ou fitness avec fort engagement, pas de lien OF, compte actif, pas de mention d'agence, entre 500 et 20k abonnés.</div>
+      </div>
+    </div>
+
+    <div class="trame-step">
+      <div class="t-num" style="background:var(--color-background-info);color:var(--color-text-info)">2</div>
+      <div class="t-body">
+        <div class="t-title">Chauffe — 3 à 5 jours</div>
+        <div class="t-desc">Plus long que pour un profil OF car elle te connaît pas du tout. Liker, commenter avec sincérité, répondre à ses stories si elle en fait. Créer une familiarité avant le DM.</div>
+      </div>
+    </div>
+
+    <div class="trame-step">
+      <div class="t-num" style="background:var(--color-background-warning);color:var(--color-text-warning)">3</div>
+      <div class="t-body">
+        <div class="t-title">Premier DM — angle monétisation, pas OF</div>
+        <div class="t-desc">Parler de son potentiel de revenus sans citer OF. Laisser la curiosité faire le travail.</div>
+        <div class="msg-box">"T'as un vrai potentiel de monétisation avec ce que tu postes — t'as déjà pensé à en tirer quelque chose ?"</div>
+        <div class="msg-box" style="margin-top:6px">"Ton contenu est vraiment bien — des créatrices avec ton profil font des revenus sérieux sur des plateformes que t'utilises probablement pas encore"</div>
+      </div>
+    </div>
+
+    <div class="trame-step">
+      <div class="t-num" style="background:var(--color-background-warning);color:var(--color-text-warning)">4</div>
+      <div class="t-body">
+        <div class="t-title">Elle répond → explorer son rapport à la monétisation</div>
+        <div class="t-desc">Comprendre où elle en est avant de proposer quoi que ce soit.</div>
+        <div class="msg-box">"T'as déjà essayé de monétiser ton contenu, ou t'as jamais vraiment creusé la question ?"</div>
+        <div class="t-delay">Si elle est curieuse → tu avances. Si elle est froide → laisse tomber, c'est pas le bon moment.</div>
+      </div>
+    </div>
+
+    <div class="trame-step">
+      <div class="t-num" style="background:var(--color-background-warning);color:var(--color-text-warning)">5</div>
+      <div class="t-body">
+        <div class="t-title">Introduire OF — seulement si elle est ouverte</div>
+        <div class="t-desc">Ne jamais forcer. Présenter OF comme un outil parmi d'autres, pas comme un choix radical.</div>
+        <div class="msg-box">"La plateforme que j'utilise avec les créatrices que j'accompagne c'est OnlyFans — mais c'est toi qui décides ce que tu montres et ce que tu montres pas. Beaucoup font du contenu fitness classique payant là-dessus"</div>
+      </div>
+    </div>
+
+    <div class="trame-step">
+      <div class="t-num" style="background:var(--color-background-danger);color:var(--color-text-danger)">6</div>
+      <div class="t-body">
+        <div class="t-title">Aller chercher le call</div>
+        <div class="t-desc">Même mécanique — le closing se fait à l'oral, pas en DM.</div>
+        <div class="msg-box">"On s'appelle 15 min ? Je t'explique comment ça marche concrètement et tu décides si c'est pour toi ou pas — sans pression"</div>
+      </div>
+    </div>
+
+    <div class="trame-step">
+      <div class="t-num" style="background:var(--color-background-success);color:var(--color-text-success)">7</div>
+      <div class="t-body">
+        <div class="t-title">Relance J+3 si silence</div>
+        <div class="t-desc">Délai plus long que pour un profil OF — elle a besoin de plus de temps pour y réfléchir.</div>
+        <div class="msg-box">"Pas de pression, je voulais juste te laisser le temps d'y réfléchir. Si t'es curieuse un jour je suis là"</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="card">
+    <div class="sec">Différence clé entre les deux profils</div>
+    <div class="diff-grid">
+      <div class="diff-card">
+        <div class="diff-head">Petit compte OF</div>
+        <div style="font-size:12px;color:var(--color-text-secondary);line-height:1.6">Elle connaît le game → va direct sur la valeur et le temps gagné. Chauffe : 2–3 jours. Mention OF : dès le début. Délai relance : J+2.</div>
+      </div>
+      <div class="diff-card">
+        <div class="diff-head">Pas d'OF</div>
+        <div style="font-size:12px;color:var(--color-text-secondary);line-height:1.6">Elle découvre → amène l'idée progressivement, ne cite pas OF trop tôt. Chauffe : 3–5 jours. Mention OF : étape 5 seulement. Délai relance : J+3.</div>
+      </div>
+    </div>
+  </div>
+  <button class="btn-ask" onclick="sendPrompt('Génère-moi des variations du premier DM pour une fille fitness sans OF qui a 3000 abonnés')">Générer des variations ↗</button>
+</div>
+
+<div id="objections" class="page">
+  <div class="card">
+    <div class="sec">Objections — profil OF existant</div>
+    <div class="obj-row"><div class="obj-q">"T'as des preuves de résultats ?"</div><div class="obj-a">"Non, je démarre avec une sélection limitée — c'est pour ça que je propose 30% le premier mois. Mon risque aussi, pas que le tien."</div></div>
+    <div class="obj-row"><div class="obj-q">"Je gère déjà seule, ça va."</div><div class="obj-a">"Combien d'heures par semaine tu passes sur le chatting et le contenu ? Parce que c'est là que je peux te faire gagner du temps."</div></div>
+    <div class="obj-row"><div class="obj-q">"50% c'est trop."</div><div class="obj-a">"On commence à 30% le premier mois. Si je double pas tes revenus, t'as perdu 30% sur rien. Si je les double, tu gardes plus qu'avant."</div></div>
+    <div class="obj-row"><div class="obj-q">"J'ai peur de l'arnaque."</div><div class="obj-a">"Légitime. Contrat écrit, tu gardes accès à tout à tout moment, et premier mois tu peux arrêter sans préavis."</div></div>
+    <div class="obj-row"><div class="obj-q">"J'ai déjà eu un mauvais manager."</div><div class="obj-a">"Dis-moi ce qui s'est passé — si c'est le manque de transparence ou les promesses en l'air, c'est exactement ce que j'évite."</div></div>
+    <div class="obj-row"><div class="obj-q">"Je veux garder le contrôle de mon image."</div><div class="obj-a">"Tu valides tout au départ. Mon rôle c'est t'enlever la charge, pas décider à ta place."</div></div>
+    <div class="obj-row"><div class="obj-q">"Je veux pas donner accès à mon compte."</div><div class="obj-a">"On peut commencer sans accès — je te prépare tout, tu postes toi-même. L'accès complet quand t'as confiance."</div></div>
+    <div class="obj-row"><div class="obj-q">"Je gagne déjà bien."</div><div class="obj-a">"Tant mieux. La vraie question c'est combien d'heures par semaine ça te prend."</div></div>
+  </div>
+  <div class="card">
+    <div class="sec">Objections — profil sans OF</div>
+    <div class="obj-row"><div class="obj-q">"C'est quoi OnlyFans exactement ?"</div><div class="obj-a">"C'est une plateforme d'abonnement — tu postes du contenu exclusif, tes abonnés paient pour y accéder. Beaucoup de créatrices fitness font ça avec du contenu totalement classique."</div></div>
+    <div class="obj-row"><div class="obj-q">"J'ai peur du jugement de mon entourage."</div><div class="obj-a">"C'est un vrai sujet. Plein de créatrices restent anonymes au départ — pseudo différent, pas de visage si elles veulent. T'as le contrôle total."</div></div>
+    <div class="obj-row"><div class="obj-q">"C'est pas trop risqué pour mon image ?"</div><div class="obj-a">"Ça dépend de ce que tu montres. Si tu restes sur du fitness premium, y a aucun risque — t'es juste une créatrice qui a un abonnement payant."</div></div>
+    <div class="obj-row"><div class="obj-q">"Et si ça marche pas ?"</div><div class="obj-a">"Premier mois à 30%, t'arrêtes quand tu veux. Le seul risque c'est d'essayer pendant un mois."</div></div>
+  </div>
+</div>
+
+<div id="ciblage" class="page">
+  <div class="card">
+    <div class="sec">Critères de ciblage</div>
+    <div class="crit-grid">
+      <div class="crit-c crit-yes">
+        <div class="crit-l crit-l-yes">À cibler</div>
+        <div class="crit-item">500 à 15–20k abonnés</div>
+        <div class="crit-item">Post récent (&lt;5 jours)</div>
+        <div class="crit-item">Engagement réel (comms, réponses)</div>
+        <div class="crit-item">Contenu cohérent et régulier</div>
+        <div class="crit-item">Lien OF ou Linktree en bio</div>
+        <div class="crit-item">Répond à ses commentaires</div>
+        <div class="crit-item">Contenu solo (pas de collab couple)</div>
+      </div>
+      <div class="crit-c crit-no">
+        <div class="crit-l crit-l-no">À éviter</div>
+        <div class="crit-item">+50k abonnés (déjà managée)</div>
+        <div class="crit-item">Inactif depuis +2 semaines</div>
+        <div class="crit-item">Agence ou manager mentionné en bio</div>
+        <div class="crit-item">Engagement froid (0 réponses)</div>
+        <div class="crit-item">Contenu couple ou collab régulière</div>
+        <div class="crit-item">Posts sponsorisés partout</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec">Où trouver les profils</div>
+    <div class="check-item"><div class="circle done"></div><div class="check-text">Hashtags fitness / lifestyle ciblés — explorer les publications récentes pas les tops</div></div>
+    <div class="check-item"><div class="circle done"></div><div class="check-text">Section "suggéré" sur les profils que tu as déjà identifiés</div></div>
+    <div class="check-item"><div class="circle done"></div><div class="check-text">Abonnées de grandes créatrices OF dans ta niche</div></div>
+    <div class="check-item"><div class="circle done"></div><div class="check-text">Stories interactives — les filles qui répondent aux sondages sont actives</div></div>
+    <div class="check-item"><div class="circle done"></div><div class="check-text">Commentaires sous des posts de créatrices connues — repérer celles qui interagissent</div></div>
+  </div>
+
+  <div class="card">
+    <div class="sec">Tes deux comptes — comment les utiliser</div>
+    <div class="check-item"><div class="circle done"></div><div class="check-text">Compte lifestyle sobre → prospection principale, crédibilité sérieuse</div></div>
+    <div class="check-item"><div class="circle done"></div><div class="check-text">Compte luxueux → inbound uniquement (stories "je cherche 2 créatrices") — ne prospecte pas en froid avec</div></div>
+    <div class="check-item"><div class="circle done"></div><div class="check-text">Ne jamais acheter des abonnés sur le compte de prospection — ton engagement rate trahirait tout</div></div>
+    <div class="check-item"><div class="circle done"></div><div class="check-text">Poster régulièrement sur les deux — une fille qui reçoit ton DM va checker ton profil dans la seconde</div></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+function tog(el) {
+  el.classList.toggle('done');
+  var txt = el.nextElementSibling;
+  txt.style.textDecoration = el.classList.contains('done') ? 'line-through' : '';
+  txt.style.color = el.classList.contains('done') ? 'var(--color-text-tertiary)' : '';
+}
+</script>
