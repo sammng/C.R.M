@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OF Management — Board Prospection</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f11;
+    --bg2: #18181c;
+    --bg3: #1f1f25;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #e8e8f0;
+    --muted: #7a7a8c;
+    --hint: #4a4a58;
+    --purple: #8b7fff;
+    --purple-bg: rgba(139,127,255,0.12);
+    --purple-dim: rgba(139,127,255,0.06);
+    --green: #4ade80;
+    --green-bg: rgba(74,222,128,0.1);
+    --amber: #fbbf24;
+    --amber-bg: rgba(251,191,36,0.1);
+    --red: #f87171;
+    --red-bg: rgba(248,113,113,0.1);
+    --blue: #60a5fa;
+    --blue-bg: rgba(96,165,250,0.1);
+    --teal: #2dd4bf;
+    --teal-bg: rgba(45,212,191,0.1);
+    --radius: 10px;
+    --radius-lg: 14px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .layout { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 210px; min-width: 210px;
+    background: var(--bg2);
+    border-right: 0.5px solid var(--border);
+    padding: 24px 0;
+    display: flex; flex-direction: column;
+    position: sticky; top: 0;
+    height: 100vh; overflow-y: auto;
+  }
+
+  .sidebar-logo { padding: 0 16px 20px; border-bottom: 0.5px solid var(--border); margin-bottom: 12px; }
+  .sidebar-logo .title { font-size: 13px; font-weight: 600; color: var(--text); letter-spacing: -0.01em; }
+  .sidebar-logo .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .edit-mode-toggle {
+    margin: 0 12px 16px;
+    padding: 7px 12px;
+    border-radius: var(--radius);
+    border: 0.5px solid var(--border2);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px; font-weight: 500;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    transition: all 0.15s;
+    width: calc(100% - 24px);
+  }
+
+  .edit-mode-toggle:hover { background: var(--bg3); color: var(--text); }
+  .edit-mode-toggle.active { background: var(--amber-bg); color: var(--amber); border-color: rgba(251,191,36,0.3); }
+
+  .edit-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  .save-btn {
+    margin: 0 12px 8px;
+    padding: 7px 12px;
+    border-radius: var(--radius);
+    border: 0.5px solid rgba(74,222,128,0.3);
+    background: var(--green-bg);
+    color: var(--green);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px; font-weight: 500;
+    cursor: pointer;
+    display: none; align-items: center; gap: 6px;
+    transition: all 0.15s;
+    width: calc(100% - 24px);
+  }
+
+  .save-btn.visible { display: flex; }
+  .save-btn:hover { background: rgba(74,222,128,0.18); }
+
+  .reset-btn {
+    margin: 0 12px 16px;
+    padding: 5px 12px;
+    border-radius: var(--radius);
+    border: 0.5px solid var(--border);
+    background: transparent;
+    color: var(--hint);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    cursor: pointer;
+    display: none; align-items: center; gap: 6px;
+    transition: all 0.15s;
+    width: calc(100% - 24px);
+  }
+  .reset-btn.visible { display: flex; }
+  .reset-btn:hover { color: var(--red); border-color: rgba(248,113,113,0.3); }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 16px;
+    font-size: 12px; color: var(--muted);
+    cursor: pointer;
+    border-left: 2px solid transparent;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .nav-item:hover { color: var(--text); background: var(--bg3); }
+  .nav-item.active { color: var(--purple); background: var(--purple-dim); border-left-color: var(--purple); }
+  .nav-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.7; }
+
+  .main { flex: 1; padding: 28px 32px; overflow-y: auto; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .page-header { margin-bottom: 20px; }
+  .page-header h1 { font-size: 18px; font-weight: 600; color: var(--text); letter-spacing: -0.02em; margin-bottom: 4px; }
+  .page-header p { font-size: 12px; color: var(--muted); }
+
+  .card {
+    background: var(--bg2);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+    margin-bottom: 14px;
+  }
+
+  .card-title {
+    font-size: 11px; font-weight: 500; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 14px;
+  }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin-bottom: 14px; }
+  .kpi { background: var(--bg3); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px; }
+  .kpi-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .kpi-value { font-size: 22px; font-weight: 600; color: var(--text); letter-spacing: -0.02em; }
+
+  .pipeline { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 8px; margin-bottom: 14px; }
+  .stage { background: var(--bg3); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 12px 10px; }
+  .stage-dot { width: 7px; height: 7px; border-radius: 50%; margin-bottom: 8px; }
+  .stage-name { font-size: 11px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .stage-n { font-size: 20px; font-weight: 600; color: var(--text); letter-spacing: -0.02em; }
+  .stage-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+
+  .funnel-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .funnel-label { font-size: 11px; color: var(--muted); width: 90px; min-width: 90px; text-align: right; }
+  .funnel-bg { flex: 1; background: var(--bg3); border-radius: 3px; height: 14px; overflow: hidden; }
+  .funnel-bar { height: 100%; border-radius: 3px; opacity: 0.85; }
+  .funnel-num { font-size: 11px; font-weight: 500; color: var(--text); width: 28px; text-align: right; }
+
+  .check-item { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 0.5px solid var(--border); }
+  .check-item:last-child { border-bottom: none; }
+  .circle {
+    width: 16px; height: 16px; min-width: 16px;
+    border-radius: 50%; border: 1.5px solid var(--hint);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    margin-top: 2px; transition: all 0.15s; flex-shrink: 0;
+  }
+  .circle:hover { border-color: var(--border2); }
+  .circle.done { background: var(--green-bg); border-color: var(--green); }
+  .circle.done::after { content:''; display:block; width:4px; height:7px; border:1.5px solid var(--green); border-left:none; border-top:none; transform:rotate(45deg) translateY(-1px); }
+  .circle.locked { background: var(--green-bg); border-color: var(--green); cursor:default; }
+  .circle.locked::after { content:''; display:block; width:4px; height:7px; border:1.5px solid var(--green); border-left:none; border-top:none; transform:rotate(45deg) translateY(-1px); }
+
+  .check-text { font-size: 12px; color: var(--text); line-height: 1.5; flex: 1; }
+
+  .badge { display: inline-block; font-size: 10px; font-weight: 500; padding: 1px 6px; border-radius: 6px; margin-left: 5px; vertical-align: middle; }
+  .b-purple { background: var(--purple-bg); color: var(--purple); }
+  .b-green  { background: var(--green-bg); color: var(--green); }
+  .b-amber  { background: var(--amber-bg); color: var(--amber); }
+  .b-red    { background: var(--red-bg); color: var(--red); }
+
+  .trame-step { display: flex; gap: 14px; padding: 14px 0; border-bottom: 0.5px solid var(--border); align-items: flex-start; }
+  .trame-step:last-child { border-bottom: none; padding-bottom: 0; }
+  .t-num { width: 26px; height: 26px; min-width: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; margin-top: 1px; flex-shrink: 0; }
+  .t-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .t-desc { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 8px; }
+  .t-delay { font-size: 10px; color: var(--hint); margin-top: 4px; }
+
+  /* EDITABLE MSG BOX */
+  .msg-box {
+    background: var(--bg3);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    font-size: 12px; color: var(--text);
+    line-height: 1.6; font-style: italic;
+    margin-bottom: 6px;
+    white-space: pre-wrap;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .msg-box[contenteditable="true"] {
+    border-color: var(--amber);
+    font-style: normal;
+    cursor: text;
+  }
+
+  .msg-box[contenteditable="true"]:focus {
+    border-color: var(--purple);
+    background: rgba(139,127,255,0.05);
+  }
+
+  /* EDITABLE TEXT */
+  [contenteditable="true"] {
+    outline: none;
+    border-radius: 4px;
+    transition: background 0.15s;
+  }
+
+  [contenteditable="true"]:hover { background: rgba(255,255,255,0.04); }
+  [contenteditable="true"]:focus { background: rgba(139,127,255,0.07); }
+
+  .edit-hint {
+    font-size: 10px; color: var(--amber); opacity: 0;
+    position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+    background: var(--bg2); border: 0.5px solid rgba(251,191,36,0.3);
+    padding: 6px 14px; border-radius: 20px;
+    transition: opacity 0.3s; pointer-events: none; z-index: 100;
+  }
+  .edit-hint.visible { opacity: 1; }
+
+  .saved-toast {
+    font-size: 10px; color: var(--green); opacity: 0;
+    position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+    background: var(--bg2); border: 0.5px solid rgba(74,222,128,0.3);
+    padding: 6px 14px; border-radius: 20px;
+    transition: opacity 0.3s; pointer-events: none; z-index: 100;
+  }
+  .saved-toast.visible { opacity: 1; }
+
+  .tab-row { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .tab {
+    padding: 5px 12px; border-radius: var(--radius);
+    font-size: 11px; font-weight: 500; cursor: pointer;
+    border: 0.5px solid var(--border2); color: var(--muted);
+    background: transparent; font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { background: var(--purple-bg); color: var(--purple); border-color: rgba(139,127,255,0.3); }
+  .script-panel { display: none; }
+  .script-panel.active { display: block; }
+
+  .obj-row { padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+  .obj-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .obj-q { font-size: 12px; font-weight: 500; color: var(--red); margin-bottom: 5px; }
+  .obj-a { font-size: 12px; color: var(--muted); line-height: 1.5; font-style: italic; }
+
+  .crit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .crit-c { border-radius: var(--radius); padding: 12px 14px; }
+  .crit-yes { background: var(--green-bg); border: 0.5px solid rgba(74,222,128,0.2); }
+  .crit-no  { background: var(--red-bg); border: 0.5px solid rgba(248,113,113,0.2); }
+  .crit-l { font-size: 11px; font-weight: 600; margin-bottom: 8px; }
+  .crit-l-yes { color: var(--green); }
+  .crit-l-no  { color: var(--red); }
+  .crit-item { font-size: 11px; color: var(--text); padding: 2px 0; opacity: 0.85; }
+
+  .diff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .diff-card { background: var(--bg3); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px; }
+  .diff-head { font-size: 12px; font-weight: 500; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 0.5px solid var(--border); }
+
+  .source-item { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; border-bottom: 0.5px solid var(--border); }
+  .source-item:last-child { border-bottom: none; }
+  .source-dot { width: 5px; height: 5px; min-width: 5px; border-radius: 50%; background: var(--purple); margin-top: 6px; }
+  .source-text { font-size: 12px; color: var(--text); line-height: 1.5; }
+
+  .compte-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px; }
+  .compte-card { background: var(--bg3); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
+  .compte-tag { font-size: 10px; font-weight: 600; color: var(--purple); margin-bottom: 6px; }
+  .compte-name { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+
+  .add-btn {
+    margin-top: 10px; padding: 6px 14px;
+    border-radius: var(--radius); border: 0.5px dashed var(--border2);
+    background: transparent; color: var(--muted);
+    font-family: 'DM Sans', sans-serif; font-size: 11px;
+    cursor: pointer; display: none; transition: all 0.15s;
+  }
+  .add-btn:hover { background: var(--bg3); color: var(--text); }
+  .edit-mode .add-btn { display: inline-block; }
+
+  .delete-btn {
+    font-size: 10px; color: var(--hint);
+    cursor: pointer; padding: 2px 6px; border-radius: 4px;
+    display: none; margin-left: 6px; flex-shrink: 0;
+    transition: all 0.15s; align-self: flex-start; margin-top: 3px;
+  }
+  .delete-btn:hover { color: var(--red); background: var(--red-bg); }
+  .edit-mode .delete-btn { display: inline-block; }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--hint); border-radius: 2px; }
+
+  @media (max-width: 700px) {
+    .sidebar { width: 160px; min-width: 160px; }
+    .main { padding: 16px; }
+    .kpi-grid { grid-template-columns: repeat(2,1fr); }
+    .pipeline { grid-template-columns: repeat(2,1fr); }
+    .two-col, .crit-grid, .diff-grid, .compte-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="edit-hint" id="edit-hint">Mode édition activé — clique sur n'importe quel texte pour le modifier</div>
+<div class="saved-toast" id="saved-toast">Modifications sauvegardées</div>
+
+<div class="layout">
+
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="title">OF Management</div>
+      <div class="sub">Board prospection</div>
+    </div>
+
+    <button class="edit-mode-toggle" id="edit-toggle" onclick="toggleEditMode()">
+      <div class="edit-dot"></div> Mode édition
+    </button>
+    <button class="save-btn" id="save-btn" onclick="saveAll()">
+      <div class="edit-dot"></div> Sauvegarder
+    </button>
+    <button class="reset-btn" id="reset-btn" onclick="resetAll()">
+      Réinitialiser le contenu
+    </button>
+
+    <div class="nav-item active" onclick="showPage('dashboard', this)"><div class="nav-dot" style="background:#8b7fff"></div> Dashboard</div>
+    <div class="nav-item" onclick="showPage('trame-of', this)"><div class="nav-dot" style="background:#4ade80"></div> Trame — OF existant</div>
+    <div class="nav-item" onclick="showPage('trame-noof', this)"><div class="nav-dot" style="background:#60a5fa"></div> Trame — Pas d'OF</div>
+    <div class="nav-item" onclick="showPage('objections', this)"><div class="nav-dot" style="background:#f87171"></div> Objections</div>
+    <div class="nav-item" onclick="showPage('ciblage', this)"><div class="nav-dot" style="background:#fbbf24"></div> Ciblage</div>
+  </div>
+
+  <div class="main" id="main-content">
+
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="page active">
+      <div class="page-header">
+        <h1>Dashboard</h1>
+        <p>Vue d'ensemble — mois 1</p>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Profils / jour</div><div class="kpi-value editable" data-id="kpi-1">5–8</div></div>
+        <div class="kpi"><div class="kpi-label">DM / jour</div><div class="kpi-value editable" data-id="kpi-2">5–10</div></div>
+        <div class="kpi"><div class="kpi-label">Objectif mois 1</div><div class="kpi-value editable" data-id="kpi-3">1 signé</div></div>
+        <div class="kpi"><div class="kpi-label">% de départ</div><div class="kpi-value editable" data-id="kpi-4">30%</div></div>
+      </div>
+
+      <div class="pipeline">
+        <div class="stage"><div class="stage-dot" style="background:#8b7fff"></div><div class="stage-name">Ciblage</div><div class="stage-n editable" data-id="pipe-1">—</div><div class="stage-sub">profils repérés</div></div>
+        <div class="stage"><div class="stage-dot" style="background:#4ade80"></div><div class="stage-name">Chauffe</div><div class="stage-n editable" data-id="pipe-2">—</div><div class="stage-sub">likes / comms</div></div>
+        <div class="stage"><div class="stage-dot" style="background:#fbbf24"></div><div class="stage-name">Premier DM</div><div class="stage-n editable" data-id="pipe-3">—</div><div class="stage-sub">envoyés</div></div>
+        <div class="stage"><div class="stage-dot" style="background:#f87171"></div><div class="stage-name">Conversation</div><div class="stage-n editable" data-id="pipe-4">—</div><div class="stage-sub">en cours</div></div>
+        <div class="stage"><div class="stage-dot" style="background:#2dd4bf"></div><div class="stage-name">Signé</div><div class="stage-n editable" data-id="pipe-5">—</div><div class="stage-sub">contrats actifs</div></div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">Entonnoir de conversion</div>
+          <div class="funnel-row"><div class="funnel-label">Ciblés</div><div class="funnel-bg"><div class="funnel-bar" style="width:100%;background:#8b7fff"></div></div><div class="funnel-num">100%</div></div>
+          <div class="funnel-row"><div class="funnel-label">Engagés</div><div class="funnel-bg"><div class="funnel-bar" style="width:50%;background:#4ade80"></div></div><div class="funnel-num">50%</div></div>
+          <div class="funnel-row"><div class="funnel-label">Réponses</div><div class="funnel-bg"><div class="funnel-bar" style="width:30%;background:#fbbf24"></div></div><div class="funnel-num">30%</div></div>
+          <div class="funnel-row"><div class="funnel-label">Conversations</div><div class="funnel-bg"><div class="funnel-bar" style="width:15%;background:#f87171"></div></div><div class="funnel-num">15%</div></div>
+          <div class="funnel-row"><div class="funnel-label">Signés</div><div class="funnel-bg"><div class="funnel-bar" style="width:5%;background:#2dd4bf"></div></div><div class="funnel-num">5%</div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Checklist quotidienne</div>
+          <div id="checklist-daily">
+            <div class="check-item"><div class="circle" onclick="tog(this)"></div><div class="check-text editable" data-id="cl-1">Identifier 5 profils <span class="badge b-purple">Ciblage</span></div><span class="delete-btn" onclick="deleteItem(this)">✕</span></div>
+            <div class="check-item"><div class="circle" onclick="tog(this)"></div><div class="check-text editable" data-id="cl-2">Liker 3–5 posts sur chaque profil <span class="badge b-purple">Chauffe</span></div><span class="delete-btn" onclick="deleteItem(this)">✕</span></div>
+            <div class="check-item"><div class="circle" onclick="tog(this)"></div><div class="check-text editable" data-id="cl-3">Envoyer 5–10 DM personnalisés <span class="badge b-amber">DM</span></div><span class="delete-btn" onclick="deleteItem(this)">✕</span></div>
+            <div class="check-item"><div class="circle" onclick="tog(this)"></div><div class="check-text editable" data-id="cl-4">Relancer les sans-réponse +48h <span class="badge b-amber">Suivi</span></div><span class="delete-btn" onclick="deleteItem(this)">✕</span></div>
+            <div class="check-item"><div class="circle" onclick="tog(this)"></div><div class="check-text editable" data-id="cl-5">Proposer un call aux chaudes <span class="badge b-red">Closing</span></div><span class="delete-btn" onclick="deleteItem(this)">✕</span></div>
+            <div class="check-item"><div class="circle" onclick="tog(this)"></div><div class="check-text editable" data-id="cl-6">Mettre à jour le pipeline <span class="badge b-green">Admin</span></div><span class="delete-btn" onclick="deleteItem(this)">✕</span></div>
+          </div>
+          <button class="add-btn" onclick="addCheckItem('checklist-daily')">+ Ajouter une tâche</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Règles d'or</div>
+        <div id="regles-or">
+          <div class="check-item"><div class="circle locked"></div><div class="check-text editable" data-id="ro-1">Jamais de pitch dans le 1er message — l'objectif c'est une réponse, rien d'autre</div><span class="delete-btn" onclick="deleteItem(this)">✕</span></div>
+          <div class="check-item"><div class="circle locked"></div><div class="check-text editable" data-id="ro-2">1 seule question par message, toujours ouverte</div><span class="delete-btn" onclick="deleteItem(this)">✕</span></div>
+          <div class="check-item"><div class="circle locked"></div><div class="check-text editable" data-id="ro-3">Max 2 relances — si pas de réponse après ça, on passe</div><span class="delete-btn" onclick="deleteItem(this)">✕</span></div>
+          <div class="check-item"><div class="circle locked"></div><div class="check-text editable" data-id="ro-4">Proposer 30% le 1er mois — c'est ta réponse à l'absence de références</div><span class="delete-btn" onclick="deleteItem(this)">✕</span></div>
+          <div class="check-item"><div class="circle locked"></div><div class="check-text editable" data-id="ro-5">Aller chercher le call rapidement — la vente se fait à l'oral, pas en DM</div><span class="delete-btn" onclick="deleteItem(this)">✕</span></div>
+          <div class="check-item"><div class="circle locked"></div><div class="check-text editable" data-id="ro-6">Joue sur la curiosité — crée un manque d'info qui donne envie de répondre</div><span class="delete-btn" onclick="deleteItem(this)">✕</span></div>
+        </div>
+        <button class="add-btn" onclick="addCheckItemLocked('regles-or')">+ Ajouter une règle</button>
+      </div>
+    </div>
+
+    <!-- TRAME OF -->
+    <div id="trame-of" class="page">
+      <div class="page-header">
+        <h1>Trame — Petit compte OF</h1>
+        <p>Profil déjà monétisé — 500 à 15k abonnés</p>
+      </div>
+
+      <div class="card" style="margin-bottom:10px">
+        <div class="card-title">Contexte</div>
+        <div class="editable" data-id="ctx-of" style="font-size:12px;color:var(--muted);line-height:1.6">Elle est déjà dans le game, elle sait ce qu'est un manager. Elle est méfiante — elle en a déjà vu beaucoup. L'angle : simplifier sa vie et booster ses revenus sans lui faire peur. Tu parles de temps avant de parler d'argent.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Trame en 7 étapes</div>
+
+        <div class="trame-step">
+          <div class="t-num" style="background:var(--blue-bg);color:var(--blue)">1</div>
+          <div style="flex:1">
+            <div class="t-title editable" data-id="of-t1-title">Identifier & qualifier</div>
+            <div class="t-desc editable" data-id="of-t1-desc">Lien OF visible en bio, posts récents (&lt;5j), contenu régulier, entre 500 et 15k abonnés, pas de mention d'agence ou manager en bio.</div>
+          </div>
+        </div>
+
+        <div class="trame-step">
+          <div class="t-num" style="background:var(--blue-bg);color:var(--blue)">2</div>
+          <div style="flex:1">
+            <div class="t-title editable" data-id="of-t2-title">Chauffe — 2 à 3 jours</div>
+            <div class="t-desc editable" data-id="of-t2-desc">Liker 3 à 5 posts espacés. Un commentaire sincère et spécifique sur un seul post. Jamais "check your DM" en commentaire.</div>
+          </div>
+        </div>
+
+        <div class="trame-step">
+          <div class="t-num" style="background:var(--amber-bg);color:var(--amber)">3</div>
+          <div style="flex:1">
+            <div class="t-title editable" data-id="of-t3-title">Premier DM — curiosité pure</div>
+            <div class="t-desc editable" data-id="of-t3-desc">Court, humain, zéro pitch. L'objectif : obtenir une réponse, pas vendre.</div>
+            <div class="msg-box editable" data-id="of-t3-msg1">"J'ai une idée pour ton compte — je t'explique que si t'es ouverte à en parler"</div>
+            <div class="msg-box editable" data-id="of-t3-msg2">"Je te contacte pas par hasard, mais j'explique seulement si t'es intéressée"</div>
+          </div>
+        </div>
+
+        <div class="trame-step">
+          <div class="t-num" style="background:var(--amber-bg);color:var(--amber)">4</div>
+          <div style="flex:1">
+            <div class="t-title editable" data-id="of-t4-title">Elle répond → aller chercher sa douleur</div>
+            <div class="t-desc editable" data-id="of-t4-desc">Pas de pitch encore. Une question sur son quotidien pour qu'elle parle.</div>
+            <div class="msg-box editable" data-id="of-t4-msg1">"Honnêtement c'est quoi le truc le plus chiant à gérer sur ton OF en ce moment ?"</div>
+          </div>
+        </div>
+
+        <div class="trame-step">
+          <div class="t-num" style="background:var(--amber-bg);color:var(--amber)">5</div>
+          <div style="flex:1">
+            <div class="t-title editable" data-id="of-t5-title">Introduire la proposition — naturellement</div>
+            <div class="t-desc editable" data-id="of-t5-desc">Une fois qu'elle a exprimé un pain point, tu rebondis dessus.</div>
+            <div class="msg-box editable" data-id="of-t5-msg1">"C'est exactement ce que je gère — le chatting, le contenu, la strat. Toi tu crées, moi je gère le reste"</div>
+          </div>
+        </div>
+
+        <div class="trame-step">
+          <div class="t-num" style="background:var(--red-bg);color:var(--red)">6</div>
+          <div style="flex:1">
+            <div class="t-title editable" data-id="of-t6-title">Aller chercher le call</div>
+            <div class="t-desc editable" data-id="of-t6-desc">Dès qu'elle est réceptive. Ne jamais closer en DM.</div>
+            <div class="msg-box editable" data-id="of-t6-msg1">"On s'appelle 15 min ? Je te montre concrètement ce que j'aurais fait sur ton compte ce mois-ci"</div>
+          </div>
+        </div>
+
+        <div class="trame-step">
+          <div class="t-num" style="background:var(--green-bg);color:var(--green)">7</div>
+          <div style="flex:1">
+            <div class="t-title editable" data-id="of-t7-title">Relance J+2 si silence</div>
+            <div class="t-desc editable" data-id="of-t7-desc">Un seul message de relance, angle différent, jamais le même.</div>
+            <div class="msg-box editable" data-id="of-t7-msg1">"Je voulais pas insister mais j'ai regardé ton compte plus en détail — il y a vraiment quelque chose à faire. Dis-moi si c'est le bon moment"</div>
+            <div class="t-delay">Maximum 2 relances. Après ça on passe.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Variations du premier DM</div>
+        <div class="tab-row">
+          <button class="tab active" onclick="showScript('of', 0, this)">Curiosité</button>
+          <button class="tab" onclick="showScript('of', 1, this)">Douleur</button>
+          <button class="tab" onclick="showScript('of', 2, this)">Indirect</button>
+          <button class="tab" onclick="showScript('of', 3, this)">Honnêteté</button>
+        </div>
+        <div id="of-s0" class="script-panel active">
+          <div class="msg-box editable" data-id="of-var-1a">"J'ai une idée pour ton compte — je t'explique que si t'es ouverte à en parler"</div>
+          <div class="msg-box editable" data-id="of-var-1b">"Je te contacte pas par hasard, mais j'explique seulement si t'es intéressée"</div>
+        </div>
+        <div id="of-s1" class="script-panel">
+          <div class="msg-box editable" data-id="of-var-2a">"C'est quoi le truc le plus chronophage sur ton OF en ce moment ? Je pose la question parce que j'ai peut-être une solution"</div>
+        </div>
+        <div id="of-s2" class="script-panel">
+          <div class="msg-box editable" data-id="of-var-3a">"J'ai vu ton compte — il y a un vrai truc à faire dessus. Dis-moi si t'as 2 min"</div>
+        </div>
+        <div id="of-s3" class="script-panel">
+          <div class="msg-box editable" data-id="of-var-4a">"Je vais être honnête — je démarre et je cherche un premier profil sérieux. En échange je prends 30% le premier mois au lieu de 50. Si ça marche pas tu perds rien"</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRAME PAS D'OF -->
+    <div id="trame-noof" class="page">
+      <div class="page-header">
+        <h1>Trame — Pas d'OF</h1>
+        <p>Profil lifestyle / fitness — pas encore monétisée</p>
+      </div>
+
+      <div class="card" style="margin-bottom:10px">
+        <div class="card-title">Contexte</div>
+        <div class="editable" data-id="ctx-noof" style="font-size:12px;color:var(--muted);line-height:1.6">Elle ne sait pas forcément ce qu'est le management OF. Elle n'est pas dans le mindset business. L'approche doit être plus douce — tu l'amènes à l'idée de monétiser avant même de parler de toi. Ne jamais mentionner OF trop tôt.</div>
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-title">Différence clé avec le profil OF</div>
+        <div class="diff-grid">
+          <div class="diff-card">
+            <div class="diff-head" style="color:var(--green)">Petit compte OF</div>
+            <div class="editable" data-id="diff-of" style="font-size:11px;color:var(--muted);line-height:1.6">Elle connaît le game → va direct sur la valeur et le temps gagné. Chauffe : 2–3 jours. Mention OF : dès le début. Délai relance : J+2</div>
+          </div>
+          <div class="diff-card">
+            <div class="diff-head" style="color:var(--blue)">Pas d'OF</div>
+            <div class="editable" data-id="diff-noof" style="font-size:11px;color:var(--muted);line-height:1.6">Elle découvre → amène l'idée progressivement, ne cite pas OF trop tôt. Chauffe : 3–5 jours. Mention OF : étape 5 seulement. Délai relance : J+3</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Trame en 7 étapes</div>
+
+        <div class="trame-step">
+          <div class="t-num" style="background:var(--blue-bg);color:var(--blue)">1</div>
+          <div style="flex:1"><div class="t-title editable" data-id="noof-t1-title">Identifier & qualifier</div><div class="t-desc editable" data-id="noof-t1-desc">Contenu suggestif ou fitness avec fort engagement, pas de lien OF, compte actif, entre 500 et 20k abonnés.</div></div>
+        </div>
+
+        <div class="trame-step">
+          <div class="t-num" style="background:var(--blue-bg);color:var(--blue)">2</div>
+          <div style="flex:1"><div class="t-title editable" data-id="noof-t2-title">Chauffe — 3 à 5 jours</div><div class="t-desc editable" data-id="noof-t2-desc">Plus long car elle te connaît pas du tout. Liker, commenter avec sincérité, répondre à ses stories. Créer une familiarité avant le DM.</div></div>
+        </div>
+
+        <div class="trame-step">
+          <div class="t-num" style="background:var(--amber-bg);color:var(--amber)">3</div>
+          <div style="flex:1">
+            <div class="t-title editable" data-id="noof-t3-title">Premier DM — angle monétisation, pas OF</div>
+            <div class="t-desc editable" data-id="noof-t3-desc">Parler de son potentiel de revenus sans citer OF. Laisser la curiosité faire le travail.</div>
+            <div class="msg-box editable" data-id="noof-t3-msg1">"T'as un vrai potentiel de monétisation avec ce que tu postes — t'as déjà pensé à en tirer quelque chose ?"</div>
+            <div class="msg-box editable" data-id="noof-t3-msg2">"Ton contenu est vraiment bien — des créatrices avec ton profil font des revenus sérieux sur des plateformes que t'utilises probablement pas encore"</div>
+          </div>
+        </div>
+
+        <div class="trame-step">
+          <div class="t-num" style="background:var(--amber-bg);color:var(--amber)">4</div>
+          <div style="flex:1">
+            <div class="t-title editable" data-id="noof-t4-title">Elle répond → explorer son rapport à la monétisation</div>
+            <div class="t-desc editable" data-id="noof-t4-desc">Comprendre où elle en est avant de proposer quoi que ce soit.</div>
+            <div class="msg-box editable" data-id="noof-t4-msg1">"T'as déjà essayé de monétiser ton contenu, ou t'as jamais vraiment creusé la question ?"</div>
+            <div class="t-delay">Si elle est curieuse → tu avances. Si elle est froide → laisse tomber.</div>
+          </div>
+        </div>
+
+        <div class="trame-step">
+          <div class="t-num" style="background:var(--amber-bg);color:var(--amber)">5</div>
+          <div style="flex:1">
+            <div class="t-title editable" data-id="noof-t5-title">Introduire OF — seulement si elle est ouverte</div>
+            <div class="t-desc editable" data-id="noof-t5-desc">Ne jamais forcer. Présenter OF comme un outil parmi d'autres, pas comme un choix radical.</div>
+            <div class="msg-box editable" data-id="noof-t5-msg1">"La plateforme que j'utilise c'est OnlyFans — mais c'est toi qui décides ce que tu montres. Beaucoup font du contenu fitness classique payant là-dessus, rien d'autre"</div>
+          </div>
+        </div>
+
+        <div class="trame-step">
+          <div class="t-num" style="background:var(--red-bg);color:var(--red)">6</div>
+          <div style="flex:1">
+            <div class="t-title editable" data-id="noof-t6-title">Aller chercher le call</div>
+            <div class="t-desc editable" data-id="noof-t6-desc">Même mécanique — le closing se fait à l'oral, pas en DM.</div>
+            <div class="msg-box editable" data-id="noof-t6-msg1">"On s'appelle 15 min ? Je t'explique comment ça marche et tu décides si c'est pour toi — sans pression"</div>
+          </div>
+        </div>
+
+        <div class="trame-step">
+          <div class="t-num" style="background:var(--green-bg);color:var(--green)">7</div>
+          <div style="flex:1">
+            <div class="t-title editable" data-id="noof-t7-title">Relance J+3 si silence</div>
+            <div class="t-desc editable" data-id="noof-t7-desc">Délai plus long — elle a besoin de plus de temps pour y réfléchir.</div>
+            <div class="msg-box editable" data-id="noof-t7-msg1">"Pas de pression, je voulais juste te laisser le temps d'y réfléchir. Si t'es curieuse un jour je suis là"</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OBJECTIONS -->
+    <div id="objections" class="page">
+      <div class="page-header">
+        <h1>Objections</h1>
+        <p>Réponses calibrées pour chaque situation</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Profil avec OF existant</div>
+        <div id="obj-of-list">
+          <div class="obj-row"><div class="obj-q editable" data-id="obj-of-1q">"T'as des preuves de résultats ?"</div><div class="obj-a editable" data-id="obj-of-1a">"Non, je démarre avec une sélection limitée — c'est pour ça que je propose 30% le premier mois. Mon risque aussi, pas que le tien."</div></div>
+          <div class="obj-row"><div class="obj-q editable" data-id="obj-of-2q">"Je gère déjà seule, ça va."</div><div class="obj-a editable" data-id="obj-of-2a">"Combien d'heures par semaine tu passes sur le chatting et le contenu ? Parce que c'est là que je peux te faire gagner du temps."</div></div>
+          <div class="obj-row"><div class="obj-q editable" data-id="obj-of-3q">"50% c'est trop."</div><div class="obj-a editable" data-id="obj-of-3a">"On commence à 30% le premier mois. Si je double pas tes revenus, t'as perdu 30% sur rien. Si je les double, tu gardes plus qu'avant."</div></div>
+          <div class="obj-row"><div class="obj-q editable" data-id="obj-of-4q">"J'ai peur de l'arnaque."</div><div class="obj-a editable" data-id="obj-of-4a">"Légitime. Contrat écrit, tu gardes accès à tout à tout moment, et le premier mois tu peux arrêter sans préavis."</div></div>
+          <div class="obj-row"><div class="obj-q editable" data-id="obj-of-5q">"J'ai déjà eu un mauvais manager."</div><div class="obj-a editable" data-id="obj-of-5a">"Dis-moi ce qui s'est passé — si c'est le manque de transparence ou les promesses en l'air, c'est exactement ce que j'évite."</div></div>
+          <div class="obj-row"><div class="obj-q editable" data-id="obj-of-6q">"Je veux garder le contrôle de mon image."</div><div class="obj-a editable" data-id="obj-of-6a">"Tu valides tout au départ. Mon rôle c'est t'enlever la charge, pas décider à ta place ce que tu montres."</div></div>
+          <div class="obj-row"><div class="obj-q editable" data-id="obj-of-7q">"Je veux pas donner accès à mon compte."</div><div class="obj-a editable" data-id="obj-of-7a">"On peut commencer sans accès — je te prépare tout, tu postes toi-même. L'accès complet vient quand t'as confiance."</div></div>
+          <div class="obj-row"><div class="obj-q editable" data-id="obj-of-8q">"Je gagne déjà bien."</div><div class="obj-a editable" data-id="obj-of-8a">"Tant mieux. La vraie question c'est combien d'heures par semaine ça te prend."</div></div>
+          <div class="obj-row"><div class="obj-q editable" data-id="obj-of-9q">"Comment tu vas me faire gagner plus si j'y arrive pas moi-même ?"</div><div class="obj-a editable" data-id="obj-of-9a">"C'est pas une question de talent, c'est une question de méthode et de temps. Toi tu crées, moi je gère la conversion et la régularité. C'est deux métiers différents."</div></div>
+        </div>
+        <button class="add-btn" onclick="addObjection('obj-of-list')">+ Ajouter une objection</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Profil sans OF</div>
+        <div id="obj-noof-list">
+          <div class="obj-row"><div class="obj-q editable" data-id="obj-noof-1q">"C'est quoi OnlyFans exactement ?"</div><div class="obj-a editable" data-id="obj-noof-1a">"C'est une plateforme d'abonnement — tu postes du contenu exclusif, tes abonnés paient pour y accéder. Beaucoup de créatrices fitness font ça avec du contenu totalement classique."</div></div>
+          <div class="obj-row"><div class="obj-q editable" data-id="obj-noof-2q">"J'ai peur du jugement de mon entourage."</div><div class="obj-a editable" data-id="obj-noof-2a">"Plein de créatrices restent anonymes au départ — pseudo différent, pas de visage si elles veulent. T'as le contrôle total."</div></div>
+          <div class="obj-row"><div class="obj-q editable" data-id="obj-noof-3q">"C'est pas risqué pour mon image ?"</div><div class="obj-a editable" data-id="obj-noof-3a">"Ça dépend de ce que tu montres. Si tu restes sur du fitness premium, y a aucun risque — t'es juste une créatrice qui a un abonnement payant."</div></div>
+          <div class="obj-row"><div class="obj-q editable" data-id="obj-noof-4q">"Et si ça marche pas ?"</div><div class="obj-a editable" data-id="obj-noof-4a">"Premier mois à 30%, t'arrêtes quand tu veux. Le seul risque c'est d'essayer pendant un mois."</div></div>
+        </div>
+        <button class="add-btn" onclick="addObjection('obj-noof-list')">+ Ajouter une objection</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Règle générale</div>
+        <div class="editable" data-id="obj-regle" style="font-size:12px;color:var(--muted);line-height:1.7">Ne jamais défendre. Reformuler l'objection comme une question légitime, puis la retourner. Une créatrice qui objecte est une créatrice qui réfléchit sérieusement — c'est bon signe.</div>
+      </div>
+    </div>
+
+    <!-- CIBLAGE -->
+    <div id="ciblage" class="page">
+      <div class="page-header">
+        <h1>Ciblage</h1>
+        <p>Qui approcher, où les trouver, comment utiliser tes comptes</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Critères de sélection</div>
+        <div class="crit-grid">
+          <div class="crit-c crit-yes">
+            <div class="crit-l crit-l-yes">À cibler</div>
+            <div class="crit-item editable" data-id="crit-y1">500 à 15–20k abonnés</div>
+            <div class="crit-item editable" data-id="crit-y2">Post récent (&lt;5 jours)</div>
+            <div class="crit-item editable" data-id="crit-y3">Engagement réel (comms, réponses)</div>
+            <div class="crit-item editable" data-id="crit-y4">Contenu cohérent et régulier</div>
+            <div class="crit-item editable" data-id="crit-y5">Lien OF ou Linktree en bio</div>
+            <div class="crit-item editable" data-id="crit-y6">Répond à ses commentaires</div>
+            <div class="crit-item editable" data-id="crit-y7">Contenu solo (pas de collab couple)</div>
+          </div>
+          <div class="crit-c crit-no">
+            <div class="crit-l crit-l-no">À éviter</div>
+            <div class="crit-item editable" data-id="crit-n1">+50k abonnés (déjà managée)</div>
+            <div class="crit-item editable" data-id="crit-n2">Inactive depuis +2 semaines</div>
+            <div class="crit-item editable" data-id="crit-n3">Agence ou manager mentionné en bio</div>
+            <div class="crit-item editable" data-id="crit-n4">Engagement froid (0 réponses)</div>
+            <div class="crit-item editable" data-id="crit-n5">Contenu couple ou collab régulière</div>
+            <div class="crit-item editable" data-id="crit-n6">Posts sponsorisés partout</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Où trouver les profils</div>
+        <div id="sources-list">
+          <div class="source-item"><div class="source-dot"></div><div class="source-text editable" data-id="src-1">Hashtags fitness / lifestyle ciblés — explorer les publications récentes, pas les tops</div><span class="delete-btn" onclick="deleteItem(this)">✕</span></div>
+          <div class="source-item"><div class="source-dot"></div><div class="source-text editable" data-id="src-2">Section "suggéré" sur les profils déjà identifiés — Instagram te propose des profils similaires</div><span class="delete-btn" onclick="deleteItem(this)">✕</span></div>
+          <div class="source-item"><div class="source-dot"></div><div class="source-text editable" data-id="src-3">Abonnées de grandes créatrices OF dans ta niche — mine d'or pour trouver des profils en phase de démarrage</div><span class="delete-btn" onclick="deleteItem(this)">✕</span></div>
+          <div class="source-item"><div class="source-dot"></div><div class="source-text editable" data-id="src-4">Stories interactives — les filles qui répondent aux sondages sont actives et engagées</div><span class="delete-btn" onclick="deleteItem(this)">✕</span></div>
+          <div class="source-item"><div class="source-dot"></div><div class="source-text editable" data-id="src-5">Commentaires sous des posts de créatrices connues — repérer celles qui interagissent régulièrement</div><span class="delete-btn" onclick="deleteItem(this)">✕</span></div>
+        </div>
+        <button class="add-btn" onclick="addSource()">+ Ajouter une source</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Tes deux comptes</div>
+        <div class="compte-grid">
+          <div class="compte-card">
+            <div class="compte-tag">COMPTE 1 — LIFESTYLE SOBRE</div>
+            <div class="compte-name editable" data-id="cpt-1-name">Prospection principale</div>
+            <div class="editable" data-id="cpt-1-desc" style="font-size:11px;color:var(--muted);line-height:1.5;margin-top:4px">Approche en froid. Crédibilité sérieuse. Poster régulièrement — la fille qui reçoit ton DM va checker ton profil dans la seconde.</div>
+          </div>
+          <div class="compte-card">
+            <div class="compte-tag">COMPTE 2 — LIFESTYLE LUXUEUX</div>
+            <div class="compte-name editable" data-id="cpt-2-name">Inbound uniquement</div>
+            <div class="editable" data-id="cpt-2-desc" style="font-size:11px;color:var(--muted);line-height:1.5;margin-top:4px">Stories "je cherche 2 créatrices sérieuses — DM si intéressée". Ne prospecte pas en froid avec ce compte. Inverser la dynamique.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+var editMode = false;
+
+function toggleEditMode() {
+  editMode = !editMode;
+  var toggle = document.getElementById('edit-toggle');
+  var saveBtn = document.getElementById('save-btn');
+  var resetBtn = document.getElementById('reset-btn');
+  var hint = document.getElementById('edit-hint');
+  var body = document.getElementById('main-content');
+
+  toggle.classList.toggle('active', editMode);
+  toggle.innerHTML = '<div class="edit-dot"></div>' + (editMode ? 'Édition active' : 'Mode édition');
+  saveBtn.classList.toggle('visible', editMode);
+  resetBtn.classList.toggle('visible', editMode);
+
+  document.querySelectorAll('.editable').forEach(function(el) {
+    el.contentEditable = editMode ? 'true' : 'false';
+  });
+  document.querySelectorAll('.msg-box.editable').forEach(function(el) {
+    el.style.fontStyle = editMode ? 'normal' : 'italic';
+  });
+
+  document.body.classList.toggle('edit-mode', editMode);
+
+  if (editMode) {
+    hint.classList.add('visible');
+    setTimeout(function() { hint.classList.remove('visible'); }, 3000);
+  }
+}
+
+function saveAll() {
+  document.querySelectorAll('.editable').forEach(function(el) {
+    var id = el.getAttribute('data-id');
+    if (id) localStorage.setItem('of-board-' + id, el.innerHTML);
+  });
+  var toast = document.getElementById('saved-toast');
+  toast.classList.add('visible');
+  setTimeout(function() { toast.classList.remove('visible'); }, 2000);
+}
+
+function loadSaved() {
+  document.querySelectorAll('.editable').forEach(function(el) {
+    var id = el.getAttribute('data-id');
+    if (id) {
+      var saved = localStorage.getItem('of-board-' + id);
+      if (saved) el.innerHTML = saved;
+    }
+  });
+}
+
+function resetAll() {
+  if (!confirm('Réinitialiser tout le contenu ? Les modifications seront perdues.')) return;
+  Object.keys(localStorage).forEach(function(k) {
+    if (k.startsWith('of-board-')) localStorage.removeItem(k);
+  });
+  location.reload();
+}
+
+function tog(el) {
+  el.classList.toggle('done');
+  var txt = el.nextElementSibling;
+  if (el.classList.contains('done')) {
+    txt.style.color = 'var(--muted)';
+    txt.style.textDecoration = 'line-through';
+  } else {
+    txt.style.color = '';
+    txt.style.textDecoration = '';
+  }
+}
+
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+}
+
+function showScript(prefix, i, btn) {
+  document.querySelectorAll('[id^="' + prefix + '-s"]').forEach(function(p) { p.classList.remove('active'); });
+  document.getElementById(prefix + '-s' + i).classList.add('active');
+  btn.closest('.tab-row').querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+  btn.classList.add('active');
+}
+
+function deleteItem(btn) {
+  if (editMode) btn.closest('.check-item, .source-item, .obj-row').remove();
+}
+
+function addCheckItem(containerId) {
+  var c = document.getElementById(containerId);
+  var div = document.createElement('div');
+  div.className = 'check-item';
+  div.innerHTML = '<div class="circle" onclick="tog(this)"></div><div class="check-text editable" contenteditable="true">Nouvelle tâche</div><span class="delete-btn" onclick="deleteItem(this)" style="display:inline-block">✕</span>';
+  c.appendChild(div);
+}
+
+function addCheckItemLocked(containerId) {
+  var c = document.getElementById(containerId);
+  var div = document.createElement('div');
+  div.className = 'check-item';
+  div.innerHTML = '<div class="circle locked"></div><div class="check-text editable" contenteditable="true">Nouvelle règle</div><span class="delete-btn" onclick="deleteItem(this)" style="display:inline-block">✕</span>';
+  c.appendChild(div);
+}
+
+function addObjection(containerId) {
+  var c = document.getElementById(containerId);
+  var div = document.createElement('div');
+  div.className = 'obj-row';
+  div.innerHTML = '<div class="obj-q editable" contenteditable="true">"Nouvelle objection ?"</div><div class="obj-a editable" contenteditable="true">"Ta réponse ici"</div>';
+  c.appendChild(div);
+}
+
+function addSource() {
+  var c = document.getElementById('sources-list');
+  var div = document.createElement('div');
+  div.className = 'source-item';
+  div.innerHTML = '<div class="source-dot"></div><div class="source-text editable" contenteditable="true">Nouvelle source de prospects</div><span class="delete-btn" onclick="deleteItem(this)" style="display:inline-block">✕</span>';
+  c.appendChild(div);
+}
+
+loadSaved();
+</script>
+</body>
+</html>
